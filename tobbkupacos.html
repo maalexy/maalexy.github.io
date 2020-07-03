@@ -1,0 +1,194 @@
+<title>Több kupacos Nim</title>
+<style>
+    #jatek {
+    }
+    #jatek-header {
+    }
+    #jatek-arena {
+        max-height: 100%;
+        display: flex;
+        flex-flow: column nowrap;
+        
+        align-content: flex-start;
+        align-items: flex-start;
+        justify-content: center;
+    }
+    .sor {
+        display: flex;
+        flex-flow: row wrap;
+
+        align-content: flex-start;
+        align-items: flex-start;
+        justify-content: flex-start;
+        
+        flex: 0 0 auto;
+        margin: 5px;
+        border: 5px solid black;
+        border-right: none;
+    }
+    .sor:nth-child(odd) {
+        background-color: lightblue;
+    }
+    .sor:nth-child(even) {
+        background-color: lightgreen;
+    }
+    .korong {
+        display: flex;
+        flex-flow: row nowrap;
+
+        align-content: center;
+        align-items: center;
+        justify-content: center;
+
+        margin: 10px;
+        width: 80px;
+        height: 80px;
+        background-color: black;
+        border-radius: 25px;
+        color: white;
+    }
+    .korong-sel {
+        background-color: red;
+        color: black;
+    }
+</style>
+
+<h1>Több kupacos NIM</h1>
+<h2>
+    Adott n kupac kavics. Két játékos játszik. A játékosok felváltva jönnek, és minden lépésben kiválasztanak egy kupacot, és abból elvesznek akárhány, de legalább egy kavicsot. Az nyer, aki az utolsó kavicsot elveszi.
+</h2>
+<div class="jatek">
+    <div class="jatek-header">
+        <button onclick="start_game()">START</button>
+    </div>
+    <div id="jatek-arena">
+        <div class="sor">
+            <div class="korong"><p>A</div>
+            <div class="korong"><p>B</div>
+            <div class="korong"><p>C</div>
+        </div>
+        <div class="sor">
+            <div class="korong"><p>D</div>
+        </div>
+        <div class="sor">
+            <div class="korong"><p>E</div>
+            <div class="korong"><p>F</div>
+            <div class="korong"><p>G</div>
+            <div class="korong"><p>H</div>
+            <div class="korong"><p>I</div>
+            <div class="korong"><p>J</div>
+            <div class="korong"><p>K</div>
+        </div>
+        <div class="sor">
+            <div class="korong"><p>L</div>
+            <div class="korong"><p>M</div>
+            <div class="korong"><p>N</div>
+            <div class="korong"><p>O</div>
+            <div class="korong"><p>P</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var arena = document.getElementById("jatek-arena");
+    
+    function k_sel(elem) {
+        var old = document.getElementsByClassName("korong-sel")[0]
+        while(old !== undefined) {
+            old.className = old.className.replaceAll("korong-sel", "");
+            old = document.getElementsByClassName("korong-sel")[0]
+        } 
+        var color = false;
+        for(child of elem.parentElement.children) {
+            if(child === elem) {
+                color = true;
+            }
+            if(color) {
+                child.className = child.className + " korong-sel";
+            }
+        }
+    }
+
+    function base_table() {
+        var base = [5, 1, 7, 3];
+        make_table(base)
+    }
+
+    function rand_table() {
+        var nrow = 2 + Math.floor(Math.random() * 4);
+        var ls = [];
+        for(var i = 0; i < nrow; ++i) {
+            ls.push(1 + Math.floor(Math.random() * 10));
+        }
+        return ls;
+    }
+
+    function make_table(table) {
+        table = table || rand_table();
+        for(var i of table) {
+            var sor = document.createElement("div");
+            sor.className = "sor";
+            for(var j = 1; j <= i; ++j) {
+                var korong = document.createElement("div");
+                korong.className = "korong";
+                korong.innerHTML = j;
+                sor.appendChild(korong);
+            }
+            arena.appendChild(sor);
+        }
+        make_events();
+    }
+
+    function read_table() {
+        var ls = []
+        for(var sor of arena.children) {
+            var cnt = 0;
+            for(var child of sor.children) {
+                cnt = cnt + 1;
+            }
+            ls.push(cnt);
+        }
+        return ls;
+    }
+
+    function k_del(elem) {
+        var ix = false;
+        var par = elem.parentElement;
+        for(var i in par.children) {
+            if(par.children[i] === elem) {
+                ix = i;
+            }
+        }
+        while(par.children[ix] !== undefined) {
+            par.removeChild(par.children[ix]);
+        }
+        if(par.children[0] === undefined) {
+            par.parentElement.removeChild(par);
+        }
+    }
+
+    function add_k_event(kor) {
+        kor.addEventListener("click", function(evn) { k_sel(kor); evn.preventDefault(); });
+        kor.addEventListener("dblclick", function(evn) { k_del(kor); evn.preventDefault(); });
+        kor.addEventListener("contextmenu", function(evn) { k_del(kor); evn.preventDefault(); });
+    }
+
+    function clear_table() {
+        while(arena.children[0] !== undefined) {
+            arena.removeChild(arena.children[0]);
+        }
+    }
+        
+    function start_game() {
+        clear_table();
+        make_table();
+    }
+
+    function make_events() {
+        for(var kor of document.getElementsByClassName("korong")) {
+            add_k_event(kor);
+        }
+    }
+    clear_table();
+    base_table();
+</script>
