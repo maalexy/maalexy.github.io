@@ -67,7 +67,7 @@
 <div class="jatek">
     <div class="jatek-header">
         <button onclick="reset_game()">RESET</button>
-        <button class="chplayer" onclick="lock_game();">Első leszek</button>
+        <button class="chplayer" onclick="nm = 'us'; lock_game();">Első leszek</button>
         <button class="chplayer" onclick="nm = 'ai'; ai_superstar(); lock_game();">Második leszel</button>
     </div>
     <div id="jatek-arena">
@@ -212,9 +212,10 @@
         while(par.children[ix] !== undefined) {
             par.removeChild(par.children[ix]);
         }
-        if(par.children[0] === undefined) {
-            par.parentElement.removeChild(par);
-        }
+    
+        //if(par.children[0] === undefined) {
+        //    par.parentElement.removeChild(par);
+        //}
 
         check_step();
     }
@@ -226,7 +227,7 @@
         k_sel(target);
         setTimeout(function() {
             k_del(target)
-        }, 300)
+        }, 800)
     }
 
     function read_table() {
