@@ -170,9 +170,14 @@
     }
 
 
+    var prev_sel = undefined;
     function k_sel(elem) {
         if(!ingame) return;
-        nm = nm || '';
+        if(prev_sel === elem) {
+            k_del(elem);
+            return;
+        }
+        prev_sel = elem;
         var old = document.getElementsByClassName('korong-sel')[0]
         while(old !== undefined) {
             old.className = old.className.replaceAll('korong-sel', '');
