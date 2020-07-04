@@ -5,7 +5,8 @@
     #jatek-header {
     }
     #jatek-arena {
-        max-height: 100%;
+        margin: 10px;
+
         display: flex;
         flex-flow: column nowrap;
         
@@ -47,19 +48,27 @@
         border-radius: 25px;
         color: white;
     }
-    .korong-sel {
+    .korong-selus {
+        background-color: yellow;
+        color: black;
+    }
+    .korong-selai {
         background-color: red;
         color: black;
     }
 </style>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <h1>Több kupacos NIM</h1>
-<h2>
-    Adott n kupac kavics. Két játékos játszik. A játékosok felváltva jönnek, és minden lépésben kiválasztanak egy kupacot, és abból elvesznek akárhány, de legalább egy kavicsot. Az nyer, aki az utolsó kavicsot elveszi.
-</h2>
+<div>
+    <p>Adott n kupac kavics. Két játékos játszik. A játékosok felváltva jönnek, és minden lépésben kiválasztanak egy kupacot, és abból elvesznek akárhány, de legalább egy kavicsot. Az nyer, aki az utolsó kavicsot elveszi.
+    <p>Válaszd ki, hogy melyik játkos szeretnél lenni, majd dupla kattintással/hosszú nyomással tudsz elvenni kavicsokat.
+</div>
 <div class="jatek">
     <div class="jatek-header">
-        <button onclick="start_game()">START</button>
+        <button onclick="reset_game()">RESET</button>
+        <button class="chplayer" onclick="lock_game();">Első leszek</button>
+        <button class="chplayer" onclick="nm = 'ai'; ai_superstar(); lock_game();">Második leszel</button>
     </div>
     <div id="jatek-arena">
         <div class="sor">
@@ -90,27 +99,41 @@
 </div>
 
 <script>
-    var arena = document.getElementById("jatek-arena");
+    var arena = document.getElementById('jatek-arena');
+    var ingame = false;
+    var nm = 'us';
     
-    function k_sel(elem) {
-        var old = document.getElementsByClassName("korong-sel")[0]
-        while(old !== undefined) {
-            old.className = old.className.replaceAll("korong-sel", "");
-            old = document.getElementsByClassName("korong-sel")[0]
-        } 
-        var color = false;
-        for(child of elem.parentElement.children) {
-            if(child === elem) {
-                color = true;
-            }
-            if(color) {
-                child.className = child.className + " korong-sel";
-            }
-        }
+    unlock_game();
+    clear_table();
+    base_table();
+    
+    function lock_game() {
+        var btns = document.getElementsByClassName('chplayer');
+        btns[0].disabled = true;
+        btns[1].disabled = true;
+        ingame = true;
+    }
+    function unlock_game() {
+        var btns = document.getElementsByClassName('chplayer');
+        btns[0].disabled = false;
+        btns[1].disabled = false;
+        ingame = false;
     }
 
+    function clear_table() {
+        while(arena.children[0] !== undefined) {
+            arena.removeChild(arena.children[0]);
+        }
+    }
+        
+    function reset_game() {
+        clear_table();
+        make_table();
+        unlock_game();
+    }
+    
     function base_table() {
-        var base = [5, 1, 7, 3];
+        var base = [5, 1, 6, 3];
         make_table(base)
     }
 
@@ -126,17 +149,79 @@
     function make_table(table) {
         table = table || rand_table();
         for(var i of table) {
-            var sor = document.createElement("div");
-            sor.className = "sor";
+            var sor = document.createElement('div');
+            sor.className = 'sor';
             for(var j = 1; j <= i; ++j) {
-                var korong = document.createElement("div");
-                korong.className = "korong";
+                var korong = document.createElement('div');
+                korong.className = 'korong';
                 korong.innerHTML = j;
                 sor.appendChild(korong);
             }
             arena.appendChild(sor);
         }
-        make_events();
+        for(var kor of document.getElementsByClassName('korong')) {
+            add_k_event(kor);
+        }
+    }
+    function add_k_event(kor) {
+        kor.addEventListener('click', function(evn) { k_sel(kor, 'us'); evn.preventDefault(); });
+        kor.addEventListener('dblclick', function(evn) { k_del(kor); evn.preventDefault(); });
+        kor.addEventListener('contextmenu', function(evn) { k_del(kor); evn.preventDefault(); });
+    }
+
+
+    function k_sel(elem) {
+        if(!ingame) return;
+        nm = nm || '';
+        var old = document.getElementsByClassName('korong-sel')[0]
+        while(old !== undefined) {
+            old.className = old.className.replaceAll('korong-sel', '');
+            old = document.getElementsByClassName('korong-sel')[0]
+        } 
+        var old = document.getElementsByClassName('korong-selai')[0]
+        while(old !== undefined) {
+            old.className = old.className.replaceAll('korong-sel', '');
+            old = document.getElementsByClassName('korong-sel')[0]
+        } 
+
+        var color = false;
+        for(child of elem.parentElement.children) {
+            if(child === elem) {
+                color = true;
+            }
+            if(color) {
+                child.className = child.className + ' korong-sel' + nm;
+            }
+        }
+    }
+
+    function k_del(elem) {
+        if(!ingame) return;
+        var ix = false;
+        var par = elem.parentElement;
+        for(var i in par.children) {
+            if(par.children[i] === elem) {
+                ix = i;
+            }
+        }
+        while(par.children[ix] !== undefined) {
+            par.removeChild(par.children[ix]);
+        }
+        if(par.children[0] === undefined) {
+            par.parentElement.removeChild(par);
+        }
+
+        check_step();
+    }
+
+
+
+    function ai_step(sr, kor) {
+        var target = arena.children[sr].children[kor];
+        k_sel(target);
+        setTimeout(function() {
+            k_del(target)
+        }, 300)
     }
 
     function read_table() {
@@ -151,44 +236,50 @@
         return ls;
     }
 
-    function k_del(elem) {
-        var ix = false;
-        var par = elem.parentElement;
-        for(var i in par.children) {
-            if(par.children[i] === elem) {
-                ix = i;
+    function ai_rand() {
+        var table = read_table()
+        var sr = Math.floor(Math.random() * table.length);
+        var kor = Math.floor(Math.random() * table[sr]);
+        ai_step(sr, kor);
+    }
+
+    function ai_superstar() {
+        var table = read_table();
+        var elem = 0;
+        for (var sr of table) {
+            elem = elem ^ sr;
+        }
+        for(var r = 0; r < table.length; ++r) {
+            if((elem ^ table[r]) < table[r]) {
+                ai_step(r, elem ^ table[r]);
+                return;
             }
         }
-        while(par.children[ix] !== undefined) {
-            par.removeChild(par.children[ix]);
+        ai_rand();
+    }
+
+    var nm = 'us';
+    function check_step() {
+        if(read_table().length === 0) {
+            end_game(); 
+            return;
         }
-        if(par.children[0] === undefined) {
-            par.parentElement.removeChild(par);
+        if(nm == 'us') {
+            nm = 'ai';
+            ai_superstar();
+        } else if(nm == 'ai') {
+            nm = 'us';
         }
     }
 
-    function add_k_event(kor) {
-        kor.addEventListener("click", function(evn) { k_sel(kor); evn.preventDefault(); });
-        kor.addEventListener("dblclick", function(evn) { k_del(kor); evn.preventDefault(); });
-        kor.addEventListener("contextmenu", function(evn) { k_del(kor); evn.preventDefault(); });
-    }
-
-    function clear_table() {
-        while(arena.children[0] !== undefined) {
-            arena.removeChild(arena.children[0]);
+    function end_game() {
+        ingame = false;
+        if(nm == 'us') {
+            arena.innerHTML = '<b>Gratulálok, nyertél!</b>';
         }
-    }
-        
-    function start_game() {
-        clear_table();
-        make_table();
-    }
-
-    function make_events() {
-        for(var kor of document.getElementsByClassName("korong")) {
-            add_k_event(kor);
+        if(nm == 'ai') {
+            arena.innerHTML = '<b>Sajnos vesztettél</b>';
         }
+        arena.innerHTML = arena.innerHTML + '<p> Új játékhoz nyomd meg a RESET gombot.';
     }
-    clear_table();
-    base_table();
 </script>
