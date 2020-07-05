@@ -15,6 +15,8 @@
         justify-content: center;
     }
     .sor {
+        min-height: 100px;
+
         display: flex;
         flex-flow: row wrap;
 
@@ -68,7 +70,7 @@
     <div class="jatek-header">
         <button onclick="reset_game()">RESET</button>
         <button class="chplayer" onclick="nm = 'us'; lock_game();">Első leszek</button>
-        <button class="chplayer" onclick="nm = 'ai'; ai_superstar(); lock_game();">Második leszel</button>
+        <button class="chplayer" onclick="nm = 'ai'; lock_game();">Második leszel</button>
     </div>
     <div id="jatek-arena">
         <div class="sor">
@@ -100,7 +102,7 @@
 
 <script>
     var arena = document.getElementById('jatek-arena');
-    var ingame = false;
+    var canclick = false;
     var nm = 'us';
     
     unlock_game();
@@ -111,13 +113,17 @@
         var btns = document.getElementsByClassName('chplayer');
         btns[0].disabled = true;
         btns[1].disabled = true;
-        ingame = true;
+        canclick = true;
+
+        if(nm == 'ai') {
+            setTimeout(ai_superstar, 50);
+        }
     }
     function unlock_game() {
         var btns = document.getElementsByClassName('chplayer');
         btns[0].disabled = false;
         btns[1].disabled = false;
-        ingame = false;
+        canclick = false;
     }
 
     function clear_table() {
@@ -172,7 +178,7 @@
 
     var prev_sel = undefined;
     function k_sel(elem) {
-        if(!ingame) return;
+        if(!canclick) return;
         if(prev_sel === elem) {
             k_del(elem);
             return;
@@ -201,7 +207,7 @@
     }
 
     function k_del(elem) {
-        if(!ingame) return;
+        if(!canclick) return;
         var ix = false;
         var par = elem.parentElement;
         for(var i in par.children) {
@@ -225,9 +231,11 @@
     function ai_step(sr, kor) {
         var target = arena.children[sr].children[kor];
         k_sel(target);
+        canclcik = false;
         setTimeout(function() {
-            k_del(target)
-        }, 800)
+            k_del(target);
+            canclick = true;
+        }, 3000)
     }
 
     function read_table() {
@@ -266,10 +274,19 @@
 
     var nm = 'us';
     function check_step() {
-        if(read_table().length === 0) {
+        var table = read_table();
+        var onlyzero = true;
+        for(var ir of table) {
+            if(ir != 0) {
+                onlyzero = false;
+                break;
+            }
+        }
+        if(onlyzero) {
             end_game(); 
             return;
         }
+
         if(nm == 'us') {
             nm = 'ai';
             ai_superstar();
@@ -279,7 +296,7 @@
     }
 
     function end_game() {
-        ingame = false;
+        canclick = false;
         if(nm == 'us') {
             arena.innerHTML = '<b>Gratulálok, nyertél!</b>';
         }
